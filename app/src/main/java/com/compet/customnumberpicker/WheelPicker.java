@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.TypedArray;
 import android.graphics.Camera;
 import android.graphics.Canvas;
@@ -32,11 +33,15 @@ import java.util.Locale;
 public abstract class WheelPicker extends View {
 
     public static final int SCROLL_STATE_IDLE = 0;
+
     public static final int SCROLL_STATE_DRAGGING = 1;
+
     public static final int SCROLL_STATE_SCROLLING = 2;
 
     public static final int ALIGN_CENTER = 0;
+
     public static final int ALIGN_LEFT = 1;
+
     public static final int ALIGN_RIGHT = 2;
 
     protected final static String FORMAT = "%1$02d"; // two digits
@@ -44,66 +49,105 @@ public abstract class WheelPicker extends View {
     private final Handler handler = new Handler();
 
     private Paint paint;
+
     private Scroller scroller;
+
     private VelocityTracker tracker;
 
     private OnItemSelectedListener onItemSelectedListener;
+
     private OnWheelChangeListener onWheelChangeListener;
+
     private OnWheelClickListener onWheelClickListener;
 
     private Rect rectDrawn;
+
     private Rect rectIndicatorHead, rectIndicatorFoot;
+
     private Rect rectCurrentItem;
 
     private Camera camera;
+
     private Matrix matrixRotate, matrixDepth;
+
     private BaseAdapter adapter;
+
     private String maxWidthText;
 
     private int mVisibleItemCount, mDrawnItemCount;
+
     private int mHalfDrawnItemCount;
+
     private int mTextMaxWidth, mTextMaxHeight;
+
     private int mItemTextColor, mSelectedItemTextColor;
+
     private int mItemTextSize;
+
     private int mIndicatorSize;
+
     private int mIndicatorColor;
+
     private int mCurtainColor;
+
     private int mItemSpace;
+
     private int mItemAlign;
+
     private int mItemHeight, mHalfItemHeight;
+
     private int mHalfWheelHeight;
+
     private int selectedItemPosition;
+
     private int currentItemPosition;
+
     private int minFlingY, maxFlingY;
+
     private int minimumVelocity = 50, maximumVelocity = 8000;
+
     private int wheelCenterX, wheelCenterY;
+
     private int drawnCenterX, drawnCenterY;
+
     private int scrollOffsetY;
+
     private int textMaxWidthPosition;
+
     private int lastPointY;
+
     private int downPointY;
+
     private int touchSlop = 8;
 
     private boolean hasSameWidth;
+
     private boolean hasIndicator;
+
     private boolean hasCurtain;
+
     private boolean hasAtmospheric;
+
     private boolean isCyclic;
+
     private boolean isCurved;
 
     private boolean isClick;
+
     private boolean isForceFinishScroll;
 
-
-
     private Runnable runnable = new Runnable() {
+
         @Override
         public void run() {
-            if (null == adapter) return;
+            if (null == adapter)
+                return;
             final int itemCount = adapter.getItemCount();
-            if (itemCount == 0) return;
+            if (itemCount == 0)
+                return;
             if (scroller.isFinished() && !isForceFinishScroll) {
-                if (mItemHeight == 0) return;
+                if (mItemHeight == 0)
+                    return;
                 int position = (-scrollOffsetY / mItemHeight + selectedItemPosition) % itemCount;
                 position = position < 0 ? position + itemCount : position;
                 currentItemPosition = position;
@@ -140,11 +184,10 @@ public abstract class WheelPicker extends View {
         super(context, attrs);
         adapter = new Adapter();
 
-
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.WheelPicker);
 
         mItemTextSize = a.getDimensionPixelSize(R.styleable.WheelPicker_wheel_item_text_size,
-                getResources().getDimensionPixelSize(R.dimen.WheelItemTextSize));
+                                                getResources().getDimensionPixelSize(R.dimen.WheelItemTextSize));
         mVisibleItemCount = a.getInt(R.styleable.WheelPicker_wheel_visible_item_count, 7);
         selectedItemPosition = a.getInt(R.styleable.WheelPicker_wheel_selected_item_position, 0);
         hasSameWidth = a.getBoolean(R.styleable.WheelPicker_wheel_same_width, false);
@@ -153,12 +196,12 @@ public abstract class WheelPicker extends View {
         mSelectedItemTextColor = a.getColor(R.styleable.WheelPicker_wheel_selected_item_text_color, -1);
         mItemTextColor = a.getColor(R.styleable.WheelPicker_wheel_item_text_color, 0xFF888888);
         mItemSpace = a.getDimensionPixelSize(R.styleable.WheelPicker_wheel_item_space,
-                getResources().getDimensionPixelSize(R.dimen.WheelItemSpace));
+                                             getResources().getDimensionPixelSize(R.dimen.WheelItemSpace));
         isCyclic = a.getBoolean(R.styleable.WheelPicker_wheel_cyclic, false);
         hasIndicator = a.getBoolean(R.styleable.WheelPicker_wheel_indicator, false);
         mIndicatorColor = a.getColor(R.styleable.WheelPicker_wheel_indicator_color, 0xFFEE3333);
         mIndicatorSize = a.getDimensionPixelSize(R.styleable.WheelPicker_wheel_indicator_size,
-                getResources().getDimensionPixelSize(R.dimen.WheelIndicatorSize));
+                                                 getResources().getDimensionPixelSize(R.dimen.WheelIndicatorSize));
         hasCurtain = a.getBoolean(R.styleable.WheelPicker_wheel_curtain, false);
         mCurtainColor = a.getColor(R.styleable.WheelPicker_wheel_curtain_color, 0x88FFFFFF);
         hasAtmospheric = a.getBoolean(R.styleable.WheelPicker_wheel_atmospheric, false);
@@ -200,7 +243,8 @@ public abstract class WheelPicker extends View {
         if (mVisibleItemCount < 2)
             throw new ArithmeticException("Wheel's visible item count can not be less than 2!");
 
-        if (mVisibleItemCount % 2 == 0) mVisibleItemCount += 1;
+        if (mVisibleItemCount % 2 == 0)
+            mVisibleItemCount += 1;
         mDrawnItemCount = mVisibleItemCount + 2;
         mHalfDrawnItemCount = mDrawnItemCount / 2;
     }
@@ -208,21 +252,21 @@ public abstract class WheelPicker extends View {
     private void computeTextSize() {
         mTextMaxWidth = mTextMaxHeight = 0;
         if (hasSameWidth) {
-            mTextMaxWidth = (int) paint.measureText(adapter.getItemText(0));
+            mTextMaxWidth = (int)paint.measureText(adapter.getItemText(0));
         } else if (isPosInRang(textMaxWidthPosition)) {
-            mTextMaxWidth = (int) paint.measureText(adapter.getItemText(textMaxWidthPosition));
+            mTextMaxWidth = (int)paint.measureText(adapter.getItemText(textMaxWidthPosition));
         } else if (!TextUtils.isEmpty(maxWidthText)) {
-            mTextMaxWidth = (int) paint.measureText(maxWidthText);
+            mTextMaxWidth = (int)paint.measureText(maxWidthText);
         } else {
             final int itemCount = adapter.getItemCount();
             for (int i = 0; i < itemCount; ++i) {
                 String text = adapter.getItemText(i);
-                int width = (int) paint.measureText(text);
+                int width = (int)paint.measureText(text);
                 mTextMaxWidth = Math.max(mTextMaxWidth, width);
             }
         }
         Paint.FontMetrics metrics = paint.getFontMetrics();
-        mTextMaxHeight = (int) (metrics.bottom - metrics.top);
+        mTextMaxHeight = (int)(metrics.bottom - metrics.top);
     }
 
     private void updateItemTextAlign() {
@@ -253,7 +297,7 @@ public abstract class WheelPicker extends View {
 
         // Correct view sizes again if curved is enable
         if (isCurved) {
-            resultHeight = (int) (2 * resultHeight / Math.PI);
+            resultHeight = (int)(2 * resultHeight / Math.PI);
         }
 
         // Consideration padding influence the view sizes
@@ -273,7 +317,8 @@ public abstract class WheelPicker extends View {
             realSize = sizeExpect;
         } else {
             realSize = sizeActual;
-            if (mode == MeasureSpec.AT_MOST) realSize = Math.min(realSize, sizeExpect);
+            if (mode == MeasureSpec.AT_MOST)
+                realSize = Math.min(realSize, sizeExpect);
         }
         return realSize;
     }
@@ -281,8 +326,10 @@ public abstract class WheelPicker extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldW, int oldH) {
         // Set content region
-        rectDrawn.set(getPaddingLeft(), getPaddingTop(), getWidth() - getPaddingRight(),
-                getHeight() - getPaddingBottom());
+        rectDrawn.set(getPaddingLeft(),
+                      getPaddingTop(),
+                      getWidth() - getPaddingRight(),
+                      getHeight() - getPaddingBottom());
 
         // Get the center coordinates of content region
         wheelCenterX = rectDrawn.centerX();
@@ -318,7 +365,7 @@ public abstract class WheelPicker extends View {
                 drawnCenterX = wheelCenterX;
                 break;
         }
-        drawnCenterY = (int) (wheelCenterY - ((paint.ascent() + paint.descent()) / 2));
+        drawnCenterY = (int)(wheelCenterY - ((paint.ascent() + paint.descent()) / 2));
     }
 
     private void computeFlingLimitY() {
@@ -328,30 +375,40 @@ public abstract class WheelPicker extends View {
     }
 
     private void computeIndicatorRect() {
-        if (!hasIndicator) return;
+        if (!hasIndicator)
+            return;
         int halfIndicatorSize = mIndicatorSize / 2;
         int indicatorHeadCenterY = wheelCenterY + mHalfItemHeight;
         int indicatorFootCenterY = wheelCenterY - mHalfItemHeight;
-        rectIndicatorHead.set(rectDrawn.left, indicatorHeadCenterY - halfIndicatorSize, rectDrawn.right,
-                indicatorHeadCenterY + halfIndicatorSize);
-        rectIndicatorFoot.set(rectDrawn.left, indicatorFootCenterY - halfIndicatorSize, rectDrawn.right,
-                indicatorFootCenterY + halfIndicatorSize);
+        rectIndicatorHead.set(rectDrawn.left,
+                              indicatorHeadCenterY - halfIndicatorSize,
+                              rectDrawn.right,
+                              indicatorHeadCenterY + halfIndicatorSize);
+        rectIndicatorFoot.set(rectDrawn.left,
+                              indicatorFootCenterY - halfIndicatorSize,
+                              rectDrawn.right,
+                              indicatorFootCenterY + halfIndicatorSize);
     }
 
     private void computeCurrentItemRect() {
-        if (!hasCurtain && mSelectedItemTextColor == -1) return;
-        rectCurrentItem.set(rectDrawn.left, wheelCenterY - mHalfItemHeight, rectDrawn.right,
-                wheelCenterY + mHalfItemHeight);
+        if (!hasCurtain && mSelectedItemTextColor == -1)
+            return;
+        rectCurrentItem.set(rectDrawn.left,
+                            wheelCenterY - mHalfItemHeight,
+                            rectDrawn.right,
+                            wheelCenterY + mHalfItemHeight);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if (null != onWheelChangeListener) onWheelChangeListener.onWheelScrolled(scrollOffsetY);
+        if (null != onWheelChangeListener)
+            onWheelChangeListener.onWheelScrolled(scrollOffsetY);
         int drawnDataStartPos = -scrollOffsetY / mItemHeight - mHalfDrawnItemCount;
-        for (int drawnDataPos = drawnDataStartPos + selectedItemPosition,
-             drawnOffsetPos = -mHalfDrawnItemCount;
-             drawnDataPos < drawnDataStartPos + selectedItemPosition + mDrawnItemCount;
-             drawnDataPos++, drawnOffsetPos++) {
+        for (int drawnDataPos = drawnDataStartPos
+                                + selectedItemPosition, drawnOffsetPos =
+                                                                       -mHalfDrawnItemCount; drawnDataPos < drawnDataStartPos
+                                                                                                            + selectedItemPosition
+                                                                                                            + mDrawnItemCount; drawnDataPos++, drawnOffsetPos++) {
             String data = "";
             if (isCyclic) {
                 final int itemCount = this.adapter.getItemCount();
@@ -359,29 +416,32 @@ public abstract class WheelPicker extends View {
                 actualPos = actualPos < 0 ? (actualPos + itemCount) : actualPos;
                 data = adapter.getItemText(actualPos);
             } else {
-                if (isPosInRang(drawnDataPos)) data = adapter.getItemText(drawnDataPos);
+                if (isPosInRang(drawnDataPos))
+                    data = adapter.getItemText(drawnDataPos);
             }
             paint.setColor(mItemTextColor);
             paint.setStyle(Paint.Style.FILL);
-            int mDrawnItemCenterY = drawnCenterY + (drawnOffsetPos * mItemHeight) +
-                    scrollOffsetY % mItemHeight;
+            int mDrawnItemCenterY = drawnCenterY + (drawnOffsetPos * mItemHeight) + scrollOffsetY % mItemHeight;
 
             int distanceToCenter = 0;
             if (isCurved) {
                 // Correct ratio of item's drawn center to wheel center
-                float ratio = (drawnCenterY - Math.abs(drawnCenterY - mDrawnItemCenterY) -
-                        rectDrawn.top) * 1.0F / (drawnCenterY - rectDrawn.top);
+                float ratio = (drawnCenterY - Math.abs(drawnCenterY - mDrawnItemCenterY) - rectDrawn.top) * 1.0F
+                              / (drawnCenterY - rectDrawn.top);
 
                 // Correct unit
                 int unit = 0;
                 if (mDrawnItemCenterY > drawnCenterY) {
                     unit = 1;
-                } else if (mDrawnItemCenterY < drawnCenterY) unit = -1;
+                } else if (mDrawnItemCenterY < drawnCenterY)
+                    unit = -1;
 
                 float degree = (-(1 - ratio) * 90 * unit);
-                if (degree < -90) degree = -90;
-                if (degree > 90) degree = 90;
-                distanceToCenter = computeSpace((int) degree);
+                if (degree < -90)
+                    degree = -90;
+                if (degree > 90)
+                    degree = 90;
+                distanceToCenter = computeSpace((int)degree);
 
                 int transX = wheelCenterX;
                 switch (mItemAlign) {
@@ -402,7 +462,7 @@ public abstract class WheelPicker extends View {
                 matrixRotate.postTranslate(transX, transY);
 
                 camera.save();
-                camera.translate(0, 0, computeDepth((int) degree));
+                camera.translate(0, 0, computeDepth((int)degree));
                 camera.getMatrix(matrixDepth);
                 camera.restore();
                 matrixDepth.preTranslate(-transX, -transY);
@@ -411,8 +471,9 @@ public abstract class WheelPicker extends View {
                 matrixRotate.postConcat(matrixDepth);
             }
             if (hasAtmospheric) {
-                int alpha =
-                        (int) ((drawnCenterY - Math.abs(drawnCenterY - mDrawnItemCenterY)) * 1.0F / drawnCenterY * 255);
+                int alpha = (int)((drawnCenterY - Math.abs(drawnCenterY - mDrawnItemCenterY)) * 1.0F
+                                  / drawnCenterY
+                                  * 255);
                 alpha = alpha < 0 ? 0 : alpha;
                 paint.setAlpha(alpha);
             }
@@ -422,21 +483,24 @@ public abstract class WheelPicker extends View {
             // Judges need to draw different color for current item or not
             if (mSelectedItemTextColor != -1) {
                 canvas.save();
-                if (isCurved) canvas.concat(matrixRotate);
+                if (isCurved)
+                    canvas.concat(matrixRotate);
                 canvas.clipRect(rectCurrentItem, Region.Op.DIFFERENCE);
                 canvas.drawText(data, drawnCenterX, drawnCenterY, paint);
                 canvas.restore();
 
                 paint.setColor(mSelectedItemTextColor);
                 canvas.save();
-                if (isCurved) canvas.concat(matrixRotate);
+                if (isCurved)
+                    canvas.concat(matrixRotate);
                 canvas.clipRect(rectCurrentItem);
                 canvas.drawText(data, drawnCenterX, drawnCenterY, paint);
                 canvas.restore();
             } else {
                 canvas.save();
                 canvas.clipRect(rectDrawn);
-                if (isCurved) canvas.concat(matrixRotate);
+                if (isCurved)
+                    canvas.concat(matrixRotate);
                 canvas.drawText(data, drawnCenterX, drawnCenterY, paint);
                 canvas.restore();
             }
@@ -461,18 +525,19 @@ public abstract class WheelPicker extends View {
     }
 
     private int computeSpace(int degree) {
-        return (int) (Math.sin(Math.toRadians(degree)) * mHalfWheelHeight);
+        return (int)(Math.sin(Math.toRadians(degree)) * mHalfWheelHeight);
     }
 
     private int computeDepth(int degree) {
-        return (int) (mHalfWheelHeight - Math.cos(Math.toRadians(degree)) * mHalfWheelHeight);
+        return (int)(mHalfWheelHeight - Math.cos(Math.toRadians(degree)) * mHalfWheelHeight);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                if (null != getParent()) getParent().requestDisallowInterceptTouchEvent(true);
+                if (null != getParent())
+                    getParent().requestDisallowInterceptTouchEvent(true);
                 if (null == tracker) {
                     tracker = VelocityTracker.obtain();
                 } else {
@@ -483,11 +548,9 @@ public abstract class WheelPicker extends View {
                     scroller.abortAnimation();
                     isForceFinishScroll = true;
                 }
-                downPointY = lastPointY = (int) event.getY();
+                downPointY = lastPointY = (int)event.getY();
                 break;
             case MotionEvent.ACTION_MOVE:
-
-
                 if (Math.abs(downPointY - event.getY()) < touchSlop) {
                     isClick = true;
                     break;
@@ -500,14 +563,20 @@ public abstract class WheelPicker extends View {
 
                 // Scroll WheelPicker's content
                 float move = event.getY() - lastPointY;
-                if (Math.abs(move) < 1) break;
+                if (Math.abs(move) < 1)
+                    break;
                 scrollOffsetY += move;
-                lastPointY = (int) event.getY();
+                lastPointY = (int)event.getY();
                 invalidate();
                 break;
             case MotionEvent.ACTION_UP:
-                if (null != getParent()) getParent().requestDisallowInterceptTouchEvent(false);
-                if (isClick) break;
+                if (null != getParent())
+                    getParent().requestDisallowInterceptTouchEvent(false);
+                if (isClick) {
+                    Intent intent = new Intent(getContext(), NewActivity.class);
+                    getContext().startActivity(intent);
+                    break;
+                }
                 tracker.addMovement(event);
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.DONUT) {
@@ -518,11 +587,11 @@ public abstract class WheelPicker extends View {
 
                 // Judges the WheelPicker is scroll or fling base on current velocity
                 isForceFinishScroll = false;
-                int velocity = (int) tracker.getYVelocity();
+                int velocity = (int)tracker.getYVelocity();
                 if (Math.abs(velocity) > minimumVelocity) {
                     scroller.fling(0, scrollOffsetY, 0, velocity, 0, 0, minFlingY, maxFlingY);
-                    scroller.setFinalY(
-                            scroller.getFinalY() + computeDistanceToEndPoint(scroller.getFinalY() % mItemHeight));
+                    scroller.setFinalY(scroller.getFinalY()
+                                       + computeDistanceToEndPoint(scroller.getFinalY() % mItemHeight));
                 } else {
                     scroller.startScroll(0, scrollOffsetY, 0, computeDistanceToEndPoint(scrollOffsetY % mItemHeight));
                 }
@@ -530,7 +599,8 @@ public abstract class WheelPicker extends View {
                 if (!isCyclic) {
                     if (scroller.getFinalY() > maxFlingY) {
                         scroller.setFinalY(maxFlingY);
-                    } else if (scroller.getFinalY() < minFlingY) scroller.setFinalY(minFlingY);
+                    } else if (scroller.getFinalY() < minFlingY)
+                        scroller.setFinalY(minFlingY);
                 }
                 handler.post(runnable);
                 if (null != tracker) {
@@ -539,7 +609,8 @@ public abstract class WheelPicker extends View {
                 }
                 break;
             case MotionEvent.ACTION_CANCEL:
-                if (null != getParent()) getParent().requestDisallowInterceptTouchEvent(false);
+                if (null != getParent())
+                    getParent().requestDisallowInterceptTouchEvent(false);
                 if (null != tracker) {
                     tracker.recycle();
                     tracker = null;
@@ -548,8 +619,6 @@ public abstract class WheelPicker extends View {
         }
         return true;
     }
-
-
 
     private int computeDistanceToEndPoint(int remainder) {
         if (Math.abs(remainder) > mHalfItemHeight) {
@@ -571,12 +640,14 @@ public abstract class WheelPicker extends View {
             ValueAnimator va = ValueAnimator.ofInt(scrollOffsetY, newScrollOffsetY);
             va.setDuration(300);
             va.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+
                 public void onAnimationUpdate(ValueAnimator animation) {
-                    scrollOffsetY = (int) animation.getAnimatedValue();
+                    scrollOffsetY = (int)animation.getAnimatedValue();
                     invalidate();
                 }
             });
             va.addListener(new AnimatorListenerAdapter() {
+
                 @Override
                 public void onAnimationEnd(Animator animation) {
                     currentItemPosition = itemPosition;
@@ -685,7 +756,8 @@ public abstract class WheelPicker extends View {
     }
 
     public void setMaximumWidthText(String text) {
-        if (null == text) throw new NullPointerException("Maximum width text can not be null!");
+        if (null == text)
+            throw new NullPointerException("Maximum width text can not be null!");
         maxWidthText = text;
         computeTextSize();
         requestLayout();
@@ -698,8 +770,9 @@ public abstract class WheelPicker extends View {
 
     public void setMaximumWidthTextPosition(int position) {
         if (!isPosInRang(position)) {
-            throw new ArrayIndexOutOfBoundsException("Maximum width text Position must in [0, " +
-                    adapter.getItemCount() + "), but current is " + position);
+            throw new ArrayIndexOutOfBoundsException("Maximum width text Position must in [0, " + adapter.getItemCount()
+                                                     + "), but current is "
+                                                     + position);
         }
         textMaxWidthPosition = position;
         computeTextSize();
@@ -827,12 +900,14 @@ public abstract class WheelPicker extends View {
     }
 
     public Typeface getTypeface() {
-        if (null != paint) return paint.getTypeface();
+        if (null != paint)
+            return paint.getTypeface();
         return null;
     }
 
     public void setTypeface(Typeface tf) {
-        if (null != paint) paint.setTypeface(tf);
+        if (null != paint)
+            paint.setTypeface(tf);
         computeTextSize();
         requestLayout();
         invalidate();
@@ -878,52 +953,48 @@ public abstract class WheelPicker extends View {
     }
 
     public interface OnItemSelectedListener {
+
         void onItemSelected(WheelPicker picker, Object data, int position);
 
         void onCurrentItemOfScroll(WheelPicker picker, int position);
     }
 
     public interface OnWheelChangeListener {
+
         /**
          * <p>
-         * Invoke when WheelPicker scroll stopped
-         * WheelPicker will return a distance offset which between current scroll position and
-         * initial position, this offset is a positive or a negative, positive means WheelPicker is
+         * Invoke when WheelPicker scroll stopped WheelPicker will return a distance offset which between current scroll
+         * position and initial position, this offset is a positive or a negative, positive means WheelPicker is
          * scrolling from bottom to top, negative means WheelPicker is scrolling from top to bottom
          *
-         * @param offset <p>
-         *               Distance offset which between current scroll position and initial position
+         * @param offset
+         * <p>
+         * Distance offset which between current scroll position and initial position
          */
         void onWheelScrolled(int offset);
 
         /**
          * <p>
-         * Invoke when WheelPicker scroll stopped
-         * This method will be called when WheelPicker stop and return current selected item data's
-         * position in list
+         * Invoke when WheelPicker scroll stopped This method will be called when WheelPicker stop and return current
+         * selected item data's position in list
          *
-         * @param position <p>
-         *                 Current selected item data's position in list
+         * @param position
+         * <p>
+         * Current selected item data's position in list
          */
         void onWheelSelected(int position);
 
         /**
          * <p>
-         * Invoke when WheelPicker's scroll state changed
-         * The state of WheelPicker always between idle, dragging, and scrolling, this method will
-         * be called when they switch
+         * Invoke when WheelPicker's scroll state changed The state of WheelPicker always between idle, dragging, and
+         * scrolling, this method will be called when they switch
          *
-         * @param state {@link WheelPicker#SCROLL_STATE_IDLE}
-         *              {@link WheelPicker#SCROLL_STATE_DRAGGING}
-         *              {@link WheelPicker#SCROLL_STATE_SCROLLING}
-         *              <p>
-         *              State of WheelPicker, only one of the following
-         *              {@link WheelPicker#SCROLL_STATE_IDLE}
-         *              Express WheelPicker in state of idle
-         *              {@link WheelPicker#SCROLL_STATE_DRAGGING}
-         *              Express WheelPicker in state of dragging
-         *              {@link WheelPicker#SCROLL_STATE_SCROLLING}
-         *              Express WheelPicker in state of scrolling
+         * @param state {@link WheelPicker#SCROLL_STATE_IDLE} {@link WheelPicker#SCROLL_STATE_DRAGGING}
+         * {@link WheelPicker#SCROLL_STATE_SCROLLING}
+         * <p>
+         * State of WheelPicker, only one of the following {@link WheelPicker#SCROLL_STATE_IDLE} Express WheelPicker in
+         * state of idle {@link WheelPicker#SCROLL_STATE_DRAGGING} Express WheelPicker in state of dragging
+         * {@link WheelPicker#SCROLL_STATE_SCROLLING} Express WheelPicker in state of scrolling
          */
         void onWheelScrollStateChanged(int state);
     }
@@ -935,6 +1006,7 @@ public abstract class WheelPicker extends View {
     }
 
     public static class Adapter implements BaseAdapter {
+
         private List data;
 
         public Adapter() {
